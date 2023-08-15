@@ -18,20 +18,20 @@ public final class PizzaView {
     }
 
     public void showMenu() {
-        System.out.println("\n--- Menu: Pizzas ---");
         boolean menuOpen = true;
         long menuOption;
 
         do {
+            System.out.println("\n" + Messages.APP_MENU + " > " + Messages.APP_MENU_PIZZA);
             showAllPizzas();
 
             System.out.print(
-                    "[1] Cadastrar \n" +
-                    "[2] Consultar \n" +
-                    "[3] Editar \n" +
-                    "[4] Excluir \n" +
-                    "[0] Voltar ao menu principal \n" +
-                    "Digite a opção desejada: ");
+                "[1] " + Messages.APP_MENU_CREATE + "   " +
+                "[2] " + Messages.APP_MENU_READ + "   " +
+                "[3] " + Messages.APP_MENU_UPDATE + "   " +
+                "[4] " + Messages.APP_MENU_DELETE + "   " +
+                "[0] " + Messages.APP_MENU_RETURN + "\n" +
+                "Digite a opção desejada: ");
             menuOption = scanner.nextInt();
 
             switch ((int) menuOption) {
@@ -40,7 +40,7 @@ public final class PizzaView {
                     System.out.println();
                 }
                 case 1 -> addPizza();
-                case 2 -> ShowPizza();
+                case 2 -> showPizza();
                 case 3 -> updatePizza();
                 case 4 -> deletePizza();
                 default -> System.out.println(Messages.INVALID_INPUT);
@@ -49,7 +49,6 @@ public final class PizzaView {
     }
 
     public void showAllPizzas() {
-        System.out.println("Últimas pizzas cadastradas: ");
         List<Pizza> pizzas = pizzaController.getAllPizzas();
 
         for (Pizza pizza : pizzas) {
@@ -59,27 +58,26 @@ public final class PizzaView {
     }
 
     public void addPizza() {
-        System.out.println("\n--- Menu: Pizzas -> Cadastrar ---");
+        System.out.println(
+            "\n" + Messages.APP_MENU + " > " + Messages.APP_MENU_PIZZA + " > " + Messages.APP_MENU_CREATE);
         Pizza pizza = new Pizza();
 
-        // Description
         String description = InputUtils.getValidStringInput(Messages.ENTER_PIZZA_DESCRIPTION);
         pizza.setDescription(description);
 
-        // Price
         float price = InputUtils.getValidFloatInput(Messages.ENTER_PIZZA_PRICE);
         pizza.setPrice(price);
 
-        // Ingredients
         String ingredients = InputUtils.getValidStringInput(Messages.ENTER_PIZZA_INGREDIENTS);
         pizza.setIngredients(ingredients);
 
         pizzaController.addPizza(pizza);
-        System.out.println("Cadastro realizado com sucesso!");
+        System.out.println(Messages.SUCCESSFUL);
     }
 
-    public void ShowPizza() {
-        System.out.println("\n--- Menu: Pizzas -> Consultar ---");
+    public void showPizza() {
+        System.out.println(
+            "\n" + Messages.APP_MENU + " > " + Messages.APP_MENU_PIZZA + " > " + Messages.APP_MENU_READ);
         long pizzaId;
 
         do {
@@ -95,7 +93,8 @@ public final class PizzaView {
     }
 
     public void updatePizza() {
-        System.out.println("\n--- Menu: Pizzas -> Editar ---");
+        System.out.println(
+            "\n" + Messages.APP_MENU + " > " + Messages.APP_MENU_PIZZA + " > " + Messages.APP_MENU_UPDATE);
         long pizzaId;
         Pizza pizza;
 
@@ -103,32 +102,30 @@ public final class PizzaView {
             pizzaId = InputUtils.getValidLongInput("Digite o código da pizza que você deseja editar: ");
             boolean pizzaExists = pizzaController.pizzaExists(pizzaId);
 
-            if (pizzaExists)
+            if (pizzaExists) {
+                pizza = pizzaController.getPizzaById(pizzaId);
                 break;
+            }
 
             System.out.println(Messages.INVALID_OPTION);
         } while (true);
 
-        pizza = pizzaController.getPizzaById(pizzaId);
-
-        // Description
         String description = InputUtils.getValidStringInput(Messages.ENTER_PIZZA_DESCRIPTION);
         pizza.setDescription(description);
 
-        // Price
         float price = InputUtils.getValidFloatInput(Messages.ENTER_PIZZA_PRICE);
         pizza.setPrice(price);
 
-        // Ingredients
         String ingredients = InputUtils.getValidStringInput(Messages.ENTER_PIZZA_INGREDIENTS);
         pizza.setIngredients( ingredients );
 
-        pizzaController.addPizza(pizza);
-        System.out.println("Edição realizada com sucesso!");
+        pizzaController.updatePizza(pizza);
+        System.out.println(Messages.SUCCESSFUL);
     }
 
     public void deletePizza() {
-        System.out.println("\n--- Menu: Pizzas -> Excluir ---");
+        System.out.println(
+            "\n" + Messages.APP_MENU + " > " + Messages.APP_MENU_PIZZA + " > " + Messages.APP_MENU_DELETE);
         long pizzaId;
 
         do {
@@ -137,9 +134,11 @@ public final class PizzaView {
 
             if (pizzaExists) {
                 pizzaController.deletePizza(pizzaId);
-                System.out.printf("A pizza id %d foi excluida!", pizzaId);
+                System.out.println(Messages.SUCCESSFUL);
                 break;
             }
+
+            System.out.println(Messages.INVALID_OPTION);
         } while (true);
     }
 }

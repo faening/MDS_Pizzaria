@@ -2,6 +2,8 @@ package com.faening.view;
 
 import com.faening.controller.DrinkController;
 import com.faening.model.Drink;
+import com.faening.utils.InputUtils;
+import com.faening.utils.Messages;
 
 import java.sql.Connection;
 import java.util.List;
@@ -16,193 +18,126 @@ public class DrinkView {
     }
 
     public void showMenu() {
-        List<Drink> drinks;
-        boolean openedMenu = true;
+        boolean menuOpen = true;
+        long menuOption;
 
         do {
-            System.out.println("\n--- Menu: Bebidas ---");
-            drinks = drinkController.getAllDrinks();
-            drinks.forEach(drink -> System.out.println(drink.toString()));
+            System.out.println("\n" + Messages.APP_MENU + " > " + Messages.APP_MENU_DRINK);
+            showAllDrinks();
 
-            System.out.print("\n[1] Cadastrar \n" +
-                             "[2] Consultar \n" +
-                             "[3] Editar \n" +
-                             "[4] Excluir \n" +
-                             "[0] Voltar \n" +
-                             "Digite a opção desejada: ");
-            int optionSelected = scanner.nextInt();
-            scanner.nextLine();
+            System.out.print(
+                "[1] " + Messages.APP_MENU_CREATE + "   " +
+                "[2] " + Messages.APP_MENU_READ + "   " +
+                "[3] " + Messages.APP_MENU_UPDATE + "   " +
+                "[4] " + Messages.APP_MENU_DELETE + "   " +
+                "[0] " + Messages.APP_MENU_RETURN + "\n" +
+                "Digite a opção desejada: ");
+            menuOption = scanner.nextInt();
 
-            switch (optionSelected) {
+            switch ((int) menuOption) {
                 case 0 -> {
-                    openedMenu = false;
+                    menuOpen = false;
                     System.out.println();
                 }
-                case 1 -> drinkController.addDrink( addDrink() );
-                case 2 -> System.out.println( drinkController.getDrinkById( showDrink() ) );
-                case 3 -> drinkController.updateDrink( updateDrink() );
-                case 4 -> drinkController.deleteDrink( deleteDrink() );
-                default -> System.out.println("Opção inválida!");
+                case 1 -> addDrink();
+                case 2 -> showDrink();
+                case 3 -> updateDrink();
+                case 4 -> deleteDrink();
+                default -> System.out.println(Messages.INVALID_INPUT);
             }
-        } while (openedMenu);
+        } while (menuOpen);
     }
 
-    public Drink addDrink() {
-        System.out.println("\n--- Menu: Bebidas -> Cadastrar ---");
+    public void showAllDrinks() {
+        List<Drink> drinks = drinkController.getAllDrinks();
+
+        for (Drink drink : drinks) {
+            System.out.println(drink.toString());
+        }
+        System.out.println();
+    }
+
+    public void addDrink() {
+        System.out.println(
+            "\n" + Messages.APP_MENU + " > " + Messages.APP_MENU_DRINK + " > " + Messages.APP_MENU_CREATE);
         Drink drink = new Drink();
 
-        do {
-            System.out.print("Descrição (Ex: Fanta Laranja): ");
-            String description = scanner.nextLine().trim();
+        String description = InputUtils.getValidStringInput(Messages.ENTER_DRINK_DESCRIPTION);
+        drink.setDescription( description );
 
-            if (!description.isEmpty()) {
-                drink.setDescription( description );
-                break;
-            }
+        float price = InputUtils.getValidFloatInput(Messages.ENTER_DRINK_PRICE);
+        drink.setPrice(price);
 
-            System.out.println("Por favor, informe uma descrição correta! \n");
-        } while (true);
+        String packingSize = InputUtils.getValidStringInput(Messages.ENTER_DRINK_PACKING_SIZE);
+        drink.setPackingSize(packingSize);
 
-        do {
-            System.out.print("Preço (Ex: 3.5): ");
-            String input = scanner.nextLine().trim();
-
-            try {
-                float price = Float.parseFloat(input);
-
-                if (price >= 0) {
-                    drink.setPrice(price);
-                    break;
-                } else {
-                    System.out.println("Por favor, informe um preço válido (valor deve ser maior ou igual a 0)!\n");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Por favor, informe um preço válido!\n");
-            }
-        } while (true);
-
-        do {
-            System.out.print("Tamhno (Ex: 350 ML): ");
-            String packingSize = scanner.nextLine().trim();
-
-            if (!packingSize.isEmpty()) {
-                drink.setPackingSize( packingSize );
-                break;
-            }
-
-            System.out.println("Por favor, informe um tamanho válido \n");
-        } while (true);
-
-        return drink;
+        drinkController.addDrink(drink);
+        System.out.println(Messages.SUCCESSFUL);
     }
 
-    public long showDrink() {
-        System.out.println("\n--- Menu: Bebidas -> Consultar ---");
+    public void showDrink() {
+        System.out.println(
+            "\n" + Messages.APP_MENU + " > " + Messages.APP_MENU_DRINK + " > " + Messages.APP_MENU_READ);
         long drinkId;
 
         do {
-            System.out.print("Qual é o código da bebida que você deseja consultar? (Ex: 3): ");
-            String input = scanner.nextLine().trim();
+            drinkId = InputUtils.getValidLongInput("Digite o código da bebida: ");
+            boolean drinkExists = drinkController.drinkExists(drinkId);
 
-            try {
-                drinkId = Long.parseLong(input);
-
-                if (drinkId >= 0) {
-                    break;
-                } else {
-                    System.out.println("Por favor, informe um código maior ou igual a 0)!\n");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Por favor, informe um código válido!\n");
+            if (drinkExists) {
+                System.out.println(drinkController.getDrinkById(drinkId).toString());
+                break;
             }
         } while (true);
-
-        return drinkId;
     }
 
-    public Drink updateDrink() {
-        System.out.println("\n--- Menu: Bebidas -> Editar ---");
+    public void updateDrink() {
+        System.out.println(
+            "\n" + Messages.APP_MENU + " > " + Messages.APP_MENU_DRINK + " > " + Messages.APP_MENU_UPDATE);
+        long drinkId;
+        Drink drink;
+
+        do {
+            drinkId = InputUtils.getValidLongInput("Digite o código da bebida que você quer editar: ");
+            boolean drinkExists = drinkController.drinkExists(drinkId);
+
+            if (drinkExists) {
+                drink = drinkController.getDrinkById(drinkId);
+                break;
+            }
+
+            System.out.println(Messages.INVALID_OPTION);
+        } while (true);
+
+        String description = InputUtils.getValidStringInput(Messages.ENTER_DRINK_DESCRIPTION);
+        drink.setDescription( description );
+
+        float price = InputUtils.getValidFloatInput(Messages.ENTER_DRINK_PRICE);
+        drink.setPrice(price);
+
+        String packingSize = InputUtils.getValidStringInput(Messages.ENTER_DRINK_PACKING_SIZE);
+        drink.setPackingSize(packingSize);
+
+        drinkController.updateDrink(drink);
+        System.out.println(Messages.SUCCESSFUL);
+    }
+
+    public void deleteDrink() {
+        System.out.println(
+            "\n" + Messages.APP_MENU + " > " + Messages.APP_MENU_DRINK + " > " + Messages.APP_MENU_DELETE);
         long drinkId;
 
         do {
-            System.out.print("Qual é o código da bebida você quer editar? (Ex: 3): ");
-            String input = scanner.nextLine().trim();
-            drinkId = Long.parseLong(input);
+            drinkId = InputUtils.getValidLongInput("Digite o código da bebida que você deseja excluir: ");
+            boolean drinkExists = drinkController.drinkExists(drinkId);
 
-            if (drinkId >=0)
-                break;
-
-            System.out.println("Por favor, informe o código correto! \n");
-        } while (true);
-
-        Drink drink = drinkController.getDrinkById( drinkId );
-
-        do {
-            System.out.printf("Descrição (Atual: %s): ", drink.getDescription());
-            String description = scanner.nextLine().trim();
-
-            if (!description.isEmpty()) {
-                drink.setDescription( description );
+            if (drinkExists) {
+                drinkController.deleteDrink(drinkId);
+                System.out.println(Messages.SUCCESSFUL);
                 break;
             }
 
-            System.out.println("Por favor, informe uma descrição correta! \n");
+            System.out.println(Messages.INVALID_OPTION);
         } while (true);
-
-        do {
-            System.out.printf("\nPreço (Atual: %.2f): ", drink.getPrice());
-            String input = scanner.nextLine().trim();
-
-            try {
-                float price = Float.parseFloat(input);
-
-                if (price >= 0) {
-                    drink.setPrice(price);
-                    break;
-                } else {
-                    System.out.println("Por favor, informe um preço válido (valor deve ser maior ou igual a 0)!\n");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Por favor, informe um preço válido!\n");
-            }
-        } while (true);
-
-        do {
-            System.out.printf("\nTamhno (Atual: %s): ", drink.getPackingSize());
-            String packingSize = scanner.nextLine().trim();
-
-            if (!packingSize.isEmpty()) {
-                drink.setPackingSize( packingSize );
-                break;
-            }
-
-            System.out.println("Por favor, informe um tamanho válido \n");
-        } while (true);
-
-        return drink;
-    }
-
-    public long deleteDrink() {
-        System.out.println("\n--- Menu: Bebidas -> Excluir ---");
-        long drinkId;
-
-        do {
-            System.out.print("Qual é o código da bebida que você deseja excluir? (Ex: 3): ");
-            String input = scanner.nextLine().trim();
-
-            try {
-                drinkId = Long.parseLong(input);
-
-                if (drinkId >= 0) {
-                    break;
-                } else {
-                    System.out.println("Por favor, informe um código maior ou igual a 0)!\n");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Por favor, informe um código válido!\n");
-            }
-        } while (true);
-
-        return drinkId;
     }
 }

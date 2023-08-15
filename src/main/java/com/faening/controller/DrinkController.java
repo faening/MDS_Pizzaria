@@ -33,5 +33,7 @@ public final class DrinkController {
         drinkDAO.deleteDrink(id);
     }
 
-    public boolean drinkExists(long id) { return drinkDAO.drinkExists(id); }
+    public boolean drinkExists(long id) {
+        return drinkDAO.drinkExists(id);
+    }
 }

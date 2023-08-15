@@ -2,6 +2,8 @@ package com.faening.view;
 
 import com.faening.controller.CustomerController;
 import com.faening.model.Customer;
+import com.faening.utils.InputUtils;
+import com.faening.utils.Messages;
 
 import java.sql.Connection;
 import java.util.List;
@@ -16,181 +18,125 @@ public final class CustomerView {
     }
 
     public void showMenu() {
-        List<Customer> customers;
-        boolean openedMenu = true;
+        boolean menuOpen = true;
+        long menuOption;
 
         do {
-            System.out.println("\n--- Menu: Clientes ---");
-            customers = customerController.getAllCustomers();
-            customers.forEach(customer -> System.out.println(customer.toString()));
+            System.out.println("\n" + Messages.APP_MENU + " > " + Messages.APP_MENU_CUSTOMER);
+            showAllCustomers();
 
-            System.out.print("\n[1] Cadastrar \n" +
-                             "[2] Consultar \n" +
-                             "[3] Editar \n" +
-                             "[4] Excluir \n" +
-                             "[0] Voltar \n" +
-                             "Digite a opção desejada: ");
-            int optionSelected = scanner.nextInt();
-            scanner.nextLine();
+            System.out.print(
+                "[1] " + Messages.APP_MENU_CREATE + "   " +
+                "[2] " + Messages.APP_MENU_READ + "   " +
+                "[3] " + Messages.APP_MENU_UPDATE + "   " +
+                "[4] " + Messages.APP_MENU_DELETE + "   " +
+                "[0] " + Messages.APP_MENU_RETURN + "\n" +
+                "Digite a opção desejada: ");
+            menuOption = scanner.nextInt();
 
-            switch (optionSelected) {
+            switch ((int) menuOption) {
                 case 0 -> {
-                    openedMenu = false;
+                    menuOpen = false;
                     System.out.println();
                 }
-                case 1 -> customerController.addCustomer( addCustomer() );
-                case 2 -> System.out.println( customerController.getCustomerById( showCustomer() ) );
-                case 3 -> customerController.updateCustomer( updateCustomer() );
-                case 4 -> customerController.deleteCustomer( deleteCustomer() );
-                default -> System.out.println("Opção inválida!");
+                case 1 -> addCustomer();
+                case 2 -> showCustomer();
+                case 3 -> updateCustomer();
+                case 4 -> deleteCustomer();
+                default -> System.out.println(Messages.INVALID_INPUT);
             }
-        } while (openedMenu);
+        } while (menuOpen);
     }
 
-    public Customer addCustomer() {
-        System.out.println("\n--- Menu: Clientes -> Cadastrar ---");
+    public void showAllCustomers() {
+        List<Customer> customers = customerController.getAllCustomers();
+
+        for (Customer customer : customers) {
+            System.out.println(customer.toString());
+        }
+        System.out.println();
+    }
+
+    public void addCustomer() {
+        System.out.println(
+            "\n" + Messages.APP_MENU + " > " + Messages.APP_MENU_CUSTOMER + " > " + Messages.APP_MENU_CREATE);
         Customer customer = new Customer();
 
-        do {
-            System.out.print("Nome (Ex: John Doe): ");
-            String name = scanner.nextLine().trim();
+        String name = InputUtils.getValidStringInput(Messages.ENTER_CUSTOMER_NAME);
+        customer.setName(name);
 
-            if (!name.isEmpty()) {
-                customer.setName(name);
-                break;
-            }
+        String phone = InputUtils.getValidStringInput(Messages.ENTER_CUSTOMER_PHONE);
+        customer.setPhone(phone);
 
-            System.out.println("Por favor, informe um nome correto! \n");
-        } while (true);
+        String address = InputUtils.getValidStringInput(Messages.ENTER_CUSTOMER_ADDRESS);
+        customer.setAddress(address);
 
-        do {
-            System.out.print("Telefone (Ex: 33 8405-9422): ");
-            String phone = scanner.nextLine().trim();
-
-            if (!phone.isEmpty()) {
-                customer.setPhone(phone);
-                break;
-            }
-
-            System.out.println("Por favor, informe um telefone correto! \n");
-        } while (true);
-
-        do {
-            System.out.print("Endereço (Ex: R Castle, 98, Principal): ");
-            String address = scanner.nextLine().trim();
-
-            if (!address.isEmpty()) {
-                customer.setAddress(address);
-                break;
-            }
-
-            System.out.println("Por favor, informe um endereço correto! \n");
-        } while (true);
-
-        return customer;
+        customerController.addCustomer(customer);
+        System.out.println(Messages.SUCCESSFUL);
     }
 
-    public long showCustomer() {
-        System.out.println("\n--- Menu: Clientes -> Consultar ---");
+    public void showCustomer() {
+        System.out.println(
+            "\n" + Messages.APP_MENU + " > " + Messages.APP_MENU_CUSTOMER + " > " + Messages.APP_MENU_READ);
+
+        do {
+          long customerId = InputUtils.getValidLongInput("Digite o código do cliente: ");
+          boolean customerExists = customerController.customerExists(customerId);
+
+          if (customerExists) {
+              System.out.println(customerController.getCustomerById(customerId));
+              break;
+          }
+        } while (true);
+    }
+
+    public void updateCustomer() {
+        System.out.println(
+            "\n" + Messages.APP_MENU + " > " + Messages.APP_MENU_CUSTOMER + " > " + Messages.APP_MENU_UPDATE);
+        long customerId;
+        Customer customer;
+
+        do {
+            customerId = InputUtils.getValidLongInput("Digite o código do cliete que você quer editar: ");
+            boolean customerExists = customerController.customerExists(customerId);
+
+            if (customerExists) {
+                customer = customerController.getCustomerById(customerId);
+                break;
+            }
+
+            System.out.println(Messages.INVALID_OPTION);
+        } while (true);
+
+        String name = InputUtils.getValidStringInput(Messages.ENTER_CUSTOMER_NAME);
+        customer.setName(name);
+
+        String phone = InputUtils.getValidStringInput(Messages.ENTER_CUSTOMER_PHONE);
+        customer.setPhone(phone);
+
+        String address = InputUtils.getValidStringInput(Messages.ENTER_CUSTOMER_ADDRESS);
+        customer.setAddress(address);
+
+        customerController.updateCustomer(customer);
+        System.out.println(Messages.SUCCESSFUL);
+    }
+
+    public void deleteCustomer() {
+        System.out.println(
+            "\n" + Messages.APP_MENU + " > " + Messages.APP_MENU_CUSTOMER + " > " + Messages.APP_MENU_DELETE);
         long customerId;
 
         do {
-            System.out.print("Qual é o código do cliente que você deseja consultar? (Ex: 3): ");
-            String input = scanner.nextLine().trim();
+            customerId = InputUtils.getValidLongInput("Digite o código do cliete que você quer excluir: ");
+            boolean customerExists = customerController.customerExists(customerId);
 
-            try {
-                customerId = Long.parseLong(input);
-
-                if (customerId >= 0) {
-                    break;
-                } else {
-                    System.out.println("Por favor, informe um código maior ou igual a 0)!\n");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Por favor, informe um código válido!\n");
-            }
-        } while (true);
-
-        return customerId;
-    }
-
-    public Customer updateCustomer() {
-        System.out.println("\n--- Menu: Clientes -> Editar ---");
-        long customerId;
-
-        do {
-            System.out.print("Qual é o código do cliente você quer editar? (Ex: 3): ");
-            String input = scanner.nextLine().trim();
-            customerId = Long.parseLong(input);
-
-            if (customerId >=0)
-                break;
-
-            System.out.println("Por favor, informe um código correto! \n");
-        } while (true);
-
-        Customer customer = customerController.getCustomerById( customerId );
-
-        do {
-            System.out.printf("Nome (Atual: %s): ", customer.getName());
-            String name = scanner.nextLine().trim();
-
-            if (!name.isEmpty()) {
-                customer.setName(name);
+            if (customerExists) {
+                customerController.deleteCustomer(customerId);
+                System.out.println(Messages.SUCCESSFUL);
                 break;
             }
 
-            System.out.println("Por favor, informe um nome correto! \n");
+            System.out.println(Messages.INVALID_OPTION);
         } while (true);
-
-        do {
-            System.out.printf("\nTelefone (Atual: %s): ", customer.getPhone());
-            String phone = scanner.nextLine().trim();
-
-            if (!phone.isEmpty()) {
-                customer.setPhone(phone);
-                break;
-            }
-
-            System.out.println("Por favor, informe um telefone correto! \n");
-        } while (true);
-
-        do {
-            System.out.printf("\nEndereço (Atual: %s): ", customer.getAddress());
-            String address = scanner.nextLine().trim();
-
-            if (!address.isEmpty()) {
-                customer.setAddress(address);
-                break;
-            }
-
-            System.out.println("Por favor, informe um endereço correto! \n");
-        } while (true);
-
-        return customer;
-    }
-
-    public long deleteCustomer() {
-        System.out.println("\n--- Menu: Clientes -> Excluir ---");
-        long customerId;
-
-        do {
-            System.out.print("Qual é o código do cliente que você deseja excluir? (Ex: 3): ");
-            String input = scanner.nextLine().trim();
-
-            try {
-                customerId = Long.parseLong(input);
-
-                if (customerId >= 0) {
-                    break;
-                } else {
-                    System.out.println("Por favor, informe um código maior ou igual a 0)!\n");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Por favor, informe um código válido!\n");
-            }
-        } while (true);
-
-        return customerId;
     }
 }

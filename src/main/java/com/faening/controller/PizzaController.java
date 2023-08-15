@@ -33,5 +33,7 @@ public final class PizzaController {
         pizzaDAO.deletePizza(id);
     }
 
-    public boolean pizzaExists(long id) { return pizzaDAO.pizzaExists(id); }
+    public boolean pizzaExists(long id) {
+        return pizzaDAO.pizzaExists(id);
+    }
 }
